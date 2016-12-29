@@ -1,3 +1,5 @@
+-- Helper functions for pre-processing images
+
 function applyFn(fn, t, t2)
     -- Apply an operation whether passed a table or tensor
     local t_ = {}
@@ -7,6 +9,7 @@ function applyFn(fn, t, t2)
         else
             for i = 1,#t do t_[i] = applyFn(fn, t[i]) end
         end
+    -- If t is not a table, apply the function 'fn' to t, t2
     else t_ = fn(t, t2) end
     return t_
 end
@@ -15,6 +18,7 @@ end
 -- Coordinate transformation
 -------------------------------------------------------------------------------
 
+-- ???
 function getTransform(center, scale, rot, res)
     local h = 200 * scale
     local t = torch.eye(3)
@@ -51,6 +55,8 @@ function getTransform(center, scale, rot, res)
     return t
 end
 
+
+-- Generate a transform matrix with the specified parameters, and apply it to a point
 function transform(pt, center, scale, rot, res, invert)
     local pt_ = torch.ones(3)
     pt_[1],pt_[2] = pt[1]-1,pt[2]-1
@@ -64,8 +70,11 @@ function transform(pt, center, scale, rot, res, invert)
     return new_point:int():add(1)
 end
 
+
+-- Transform the predicted keypoints using the specified parameters
 function transformPreds(coords, center, scale, res)
     local origDims = coords:size()
+    -- Reshape the coords vector such that it has 2 cols
     coords = coords:view(-1,2)
     local newCoords = coords:clone()
     for i = 1,coords:size(1) do
@@ -78,13 +87,17 @@ end
 -- Cropping
 -------------------------------------------------------------------------------
 
+-- ???
 function checkDims(dims)
     return dims[3] < dims[4] and dims[5] < dims[6]
 end
 
+
 function crop(img, center, scale, rot, res)
+    -- Get the number of dimensions of the image
     local ndim = img:nDimension()
-    if ndim == 2 then img = img:view(1,img:size(1),img:size(2)) end
+    -- If the image has only two dimensions (height, width), convert it to a 3D representation
+    if ndim == 2 then img = img:view(1, img:size(1), img:size(2)) end
     local ht,wd = img:size(2), img:size(3)
     local tmpImg,newImg = img, torch.zeros(img:size(1), res, res)
 
@@ -247,6 +260,8 @@ function drawLine(img, pt1, pt2, width, color)
     end
 end
 
+
+-- ???
 function drawSkeleton(img, preds, scores)
     preds = preds:clone():add(1) -- Account for 1-indexing in lua
     local pairRef = dataset.skeletonRef

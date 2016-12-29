@@ -1,3 +1,5 @@
+-- Parse command line input and do global variable initialization
+
 require 'torch'
 require 'xlua'
 require 'optim'
@@ -11,10 +13,11 @@ ffi = require 'ffi'
 torch.setdefaulttensortype('torch.FloatTensor')
 
 -- Project directory
-projectDir = paths.concat(os.getenv('HOME'),'pose-hg-train')
+projectDir = paths.concat(os.getenv('HOME'),'code', 'hourglass-experiments')
 
--- Process command line arguments, load helper functions
+-- Process command line arguments
 paths.dofile('opts.lua')
+-- Load helper functions
 paths.dofile('util/img.lua')
 paths.dofile('util/eval.lua')
 if not Logger then paths.dofile('util/Logger.lua') end

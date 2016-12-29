@@ -29,6 +29,7 @@ end
 
 function getPreds(hm)
     assert(hm:size():size() == 4, 'Input must be 4-D tensor')
+    -- ???
     local max, idx = torch.max(hm:view(hm:size(1), hm:size(2), hm:size(3) * hm:size(4)), 3)
     local preds = torch.repeatTensor(idx, 1, 1, 2):float()
     preds[{{}, {}, 1}]:apply(function(x) return (x - 1) % hm:size(4) + 1 end)
@@ -74,6 +75,7 @@ function heatmapAccuracy(output, label, thr, idxs)
     return unpack(acc)
 end
 
+-- ???
 function basicAccuracy(output, label, thr)
     -- Calculate basic accuracy
     if not thr then thr = .5 end -- Default threshold of .5

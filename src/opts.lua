@@ -1,6 +1,8 @@
+-- Parse command-line arguments
+
 if not opt then
 
-projectDir = projectDir or paths.concat(os.getenv('HOME'),'pose-hg-train')
+projectDir = projectDir or paths.concat(os.getenv('HOME'),'code', 'hourglass-experiments')
 
 local function parse(arg)
     local cmd = torch.CmdLine()
@@ -12,7 +14,7 @@ local function parse(arg)
     cmd:option('-dataDir',  projectDir .. '/data', 'Data directory')
     cmd:option('-expDir',   projectDir .. '/exp',  'Experiments directory')
     cmd:option('-manualSeed',         -1, 'Manually set RNG seed')
-    cmd:option('-GPU',                 1, 'Default preferred GPU, if set to -1: no GPU')
+    cmd:option('-GPU',                 2, 'Default preferred GPU, if set to -1: no GPU')
     cmd:option('-finalPredictions',false, 'Generate a final set of predictions at the end of training (default no)')
     cmd:option('-nThreads',            4, 'Number of data loading threads')
     cmd:text()
@@ -22,9 +24,11 @@ local function parse(arg)
     cmd:option('-loadModel',      'none', 'Provide full path to a previously trained model')
     cmd:option('-continue',        false, 'Pick up where an experiment left off')
     cmd:option('-branch',         'none', 'Provide a parent expID to branch off')
+    -- ???
     cmd:option('-task',           'pose', 'Network task: pose | pose-int')
     cmd:option('-nFeats',            256, 'Number of features in the hourglass')
     cmd:option('-nStack',              8, 'Number of hourglasses to stack')
+    -- ???
     cmd:option('-nModules',            1, 'Number of residual modules at each location in the hourglass')
     cmd:text()
     cmd:text(' ---------- Snapshot options -----------------------------------')
