@@ -28,7 +28,6 @@ local function parse(arg)
     cmd:option('-task',           'pose', 'Network task: pose | pose-int')
     cmd:option('-nFeats',            256, 'Number of features in the hourglass')
     cmd:option('-nStack',              8, 'Number of hourglasses to stack')
-    -- ???
     cmd:option('-nModules',            1, 'Number of residual modules at each location in the hourglass')
     cmd:text()
     cmd:text(' ---------- Snapshot options -----------------------------------')

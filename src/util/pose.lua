@@ -1,9 +1,18 @@
+-- Task-specific variables and functions for the 'pose' task
+
 -- Update dimension references to account for intermediate supervision
-ref.predDim = {dataset.nJoints,5}
+-- Usually, we apply the loss at 5 points.
+ref.predDim = {dataset.nJoints, 5}
+
+-- Dimensionality of the output layer
 ref.outputDim = {}
+-- Add a ParallelCriterion (weighted sum of other Criterion)
 criterion = nn.ParallelCriterion()
+-- For each hourglass that is being stacked
 for i = 1,opt.nStack do
+    -- Add an entry in ref.outputDim
     ref.outputDim[i] = {dataset.nJoints, opt.outputRes, opt.outputRes}
+    -- Add the Criterion specified in 'opt' (default is MSE)
     criterion:add(nn[opt.crit .. 'Criterion']())
 end
 

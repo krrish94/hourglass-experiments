@@ -1,26 +1,35 @@
 -- Defines the architecture for the hourglass model
 
--- Load the Residual block modules
+
+-- Load the Residual block module
 paths.dofile('layers/Residual.lua')
 
 
 -- Describes the hourglass module
+-- Inputs
+-- n: number of 'stages' in the hourglass
+-- f: number of featurs to be maintained across the hourglass layers
+-- inp: network architecture upto the layer just before the hourglass
 local function hourglass(n, f, inp)
-    -- Upper branch
+    
+    -- Upper branch (the branch without size reduction)
     local up1 = inp
     for i = 1,opt.nModules do up1 = Residual(f,f)(up1) end
 
-    -- Lower branch
+    -- Lower branch (the branch that involves pooling)
     local low1 = nnlib.SpatialMaxPooling(2,2,2,2)(inp)
     for i = 1,opt.nModules do low1 = Residual(f,f)(low1) end
-    local low2
+    
 
+    local low2
+    -- Recursively call the function, to add layers in the hourglass
     if n > 1 then low2 = hourglass(n-1,f,low1)
     else
         low2 = low1
         for i = 1,opt.nModules do low2 = Residual(f,f)(low2) end
     end
 
+    -- Upsampling modules
     local low3 = low2
     for i = 1,opt.nModules do low3 = Residual(f,f)(low3) end
     local up2 = nn.SpatialUpSamplingNearest(2)(low3)
@@ -29,12 +38,20 @@ local function hourglass(n, f, inp)
     return nn.CAddTable()({up1,up2})
 end
 
+
+-- Apply a 1 x 1 convolution, followed by a BatchNorm and a ReLU
+-- Inputs
+-- numIn: number of input channels
+-- numOut: number of output channels
+-- inp: input computational graph
 local function lin(numIn,numOut,inp)
     -- Apply 1x1 convolution, stride 1, no padding
     local l = nnlib.SpatialConvolution(numIn,numOut,1,1,1,1,0,0)(inp)
     return nnlib.ReLU(true)(nn.SpatialBatchNormalization(numOut)(l))
 end
 
+
+-- Function to create the hourglass model
 function createModel()
 
     local inp = nn.Identity()()
@@ -50,14 +67,17 @@ function createModel()
     local out = {}
     local inter = r5
 
+    -- For each hourglass to be stacked together
     for i = 1,opt.nStack do
-        local hg = hourglass(4,opt.nFeats,inter)
+
+        -- Add an hourglass module
+        local hg = hourglass(4, opt.nFeats, inter)
 
         -- Residual layers at output resolution
         local ll = hg
-        for j = 1,opt.nModules do ll = Residual(opt.nFeats,opt.nFeats)(ll) end
+        for j = 1,opt.nModules do ll = Residual(opt.nFeats, opt.nFeats)(ll) end
         -- Linear layer to produce first set of predictions
-        ll = lin(opt.nFeats,opt.nFeats,ll)
+        ll = lin(opt.nFeats, opt.nFeats, ll)
 
         -- Predicted heatmaps
         local tmpOut = nnlib.SpatialConvolution(opt.nFeats,ref.nOutChannels,1,1,1,1,0,0)(ll)
