@@ -1,5 +1,10 @@
+-- Defines the architecture for the hourglass model
+
+-- Load the Residual block modules
 paths.dofile('layers/Residual.lua')
 
+
+-- Describes the hourglass module
 local function hourglass(n, f, inp)
     -- Upper branch
     local up1 = inp

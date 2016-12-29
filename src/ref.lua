@@ -1,15 +1,27 @@
 -- Parse command line input and do global variable initialization
 
+-- Torch package (for scientific computing with Lua)
 require 'torch'
+-- Lua extensions package
 require 'xlua'
+-- Numeric optimization package for Torch
 require 'optim'
+-- Torch neural network package
 require 'nn'
+-- Extensions to the Torch 'nn' package
 require 'nnx'
+-- Neural network graph package for Torch
 require 'nngraph'
+-- HDF5 package
 require 'hdf5'
+-- String operations
 require 'string'
+-- Image operations
 require 'image'
+-- Routines to call C code from Lua
 ffi = require 'ffi'
+
+-- Set default tensor type
 torch.setdefaulttensortype('torch.FloatTensor')
 
 -- Project directory
@@ -17,9 +29,11 @@ projectDir = paths.concat(os.getenv('HOME'),'code', 'hourglass-experiments')
 
 -- Process command line arguments
 paths.dofile('opts.lua')
--- Load helper functions
+-- Load helper functions for image
 paths.dofile('util/img.lua')
+-- Load helper function for evaluation (accuracy metrics, etc)
 paths.dofile('util/eval.lua')
+-- If the Logger hasn't executed yet, execute it
 if not Logger then paths.dofile('util/Logger.lua') end
 
 -- Random number seed
@@ -34,13 +48,17 @@ end
 
 -- Global reference (may be updated in the task file below)
 if not ref then
+    -- Initalize a variable to store the global reference
     ref = {}
+    -- Number of output channels (number of keypoints)
     ref.nOutChannels = dataset.nJoints
+    -- Input dimensions ([channels] x [height] x [width]) ??? (or width x height)
     ref.inputDim = {3, opt.inputRes, opt.inputRes}
+    -- Output dimensions ([channels] x [height] x [width]) ??? (or width x height)
     ref.outputDim = {ref.nOutChannels, opt.outputRes, opt.outputRes}
 end
 
--- Load up task specific variables / functions
+-- Load up task specific variables / functions (default task is 'pose')
 paths.dofile('util/' .. opt.task .. '.lua')
 
 -- Optimization function and hyperparameters

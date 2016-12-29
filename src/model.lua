@@ -1,4 +1,9 @@
---- Load up network model or initialize from scratch
+---------------------------------------------------
+-- Script to initialize the network architecture --
+---------------------------------------------------
+
+-- Load up network model or initialize from scratch
+-- opt.netType is either 'hg' or 'hg-stacked'
 paths.dofile('models/' .. opt.netType .. '.lua')
 
 -- Continuing an experiment where it left off
@@ -21,9 +26,11 @@ end
 
 -- Criterion (can be set in the opt.task file as well)
 if not criterion then
+    -- By default, the criterion is 'MSE'
     criterion = nn[opt.crit .. 'Criterion']()
 end
 
+-- GPU options for the model
 if opt.GPU ~= -1 then
     -- Convert model to CUDA
     print('==> Converting model to CUDA')
