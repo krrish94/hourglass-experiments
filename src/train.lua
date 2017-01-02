@@ -1,40 +1,76 @@
+-- Variables and functions required for training the network
+
+
 -- Prepare tensors for saving network output
+
+-- Number of validation samples
 local validSamples = opt.validIters * opt.validBatch
+-- Initialize tensors to hold network output that has to be saved
 saved = {idxs = torch.Tensor(validSamples),
          preds = torch.Tensor(validSamples, unpack(ref.predDim))}
 if opt.saveInput then saved.input = torch.Tensor(validSamples, unpack(ref.inputDim)) end
 if opt.saveHeatmaps then saved.heatmaps = torch.Tensor(validSamples, unpack(ref.outputDim[1])) end
 
+
 -- Main processing step
+-- Input
+-- tag: 'train' or 'valid' or 'predict'
 function step(tag)
+
+    -- Variables to store Average loss, Average accuracy
     local avgLoss, avgAcc = 0.0, 0.0
+    -- Variables to store network output, error, index
     local output, err, idx
+    -- Returns the flattened learnable params and the gradients of the energy wrt these params
     local param, gradparam = model:getParameters()
+    -- Function to evaluate an input x and return the network output and the gradients ???
     local function evalFn(x) return criterion.output, gradparam end
 
+    -- In training mode
     if tag == 'train' then
+        -- Set the mode of the Module (or sub-modules) to 'train = true'
+        -- This mode is useful for modules like BatchNorm that have a different behavior during training
+        -- and evaluation
         model:training()
+        -- We will work with the train split
         set = 'train'
     else
+        -- Set the mode of the Module (or sub-modules) to 'train = false'
+        -- This mode is useful for modules like BatchNorm that have a different behavior during training
+        -- and evaluation
         model:evaluate()
+
+        -- In test mode
         if tag == 'predict' then
+            -- Generate predictions over the test set
             print("==> Generating predictions...")
+            -- Number of samples in the test set
             local nSamples = dataset:size('test')
+            -- Variable to store the indices and predictions of test data
             saved = {idxs = torch.Tensor(nSamples),
                      preds = torch.Tensor(nSamples, unpack(ref.predDim))}
             if opt.saveInput then saved.input = torch.Tensor(nSamples, unpack(ref.inputDim)) end
             if opt.saveHeatmaps then saved.heatmaps = torch.Tensor(nSamples, unpack(ref.outputDim[1])) end
+            -- We will work with the test split
             set = 'test'
         else
+            -- We will work with the val split
             set = 'valid'
         end
     end
 
+    -- Get the number of iterations to run on the current set (train/valid/test)
     local nIters = opt[set .. 'Iters']
+
+    -- For each sample in the current set (batch ???)
     for i,sample in loader[set]:run() do
+
+        -- Display the progress bar
         xlua.progress(i, nIters)
+        -- Unpack the sample to various tensors
         local input, label, indices = unpack(sample)
 
+        -- In GPU mode
         if opt.GPU ~= -1 then
             -- Convert to CUDA
             input = applyFn(function (x) return x:cuda() end, input)
@@ -46,13 +82,16 @@ function step(tag)
         local err = criterion:forward(output, label)
         avgLoss = avgLoss + err / nIters
 
+        -- Training: Do backpropagation and optimization
         if tag == 'train' then
-            -- Training: Do backpropagation and optimization
+            -- ??? Clear any gradients that have been accumulated at modules during a previous backward pass
             model:zeroGradParameters()
+            -- Perform a backward pass (accumulate gradients)
             model:backward(input, criterion:backward(output, label))
+            -- Update parameters using the optimization method (default: 'rmsprop')
             optfn(evalFn, param, optimState)
+        -- Validation: Get flipped output
         else
-            -- Validation: Get flipped output
             output = applyFn(function (x) return x:clone() end, output)
             local flippedOut = model:forward(flip(input))
             flippedOut = applyFn(function (x) return flip(shuffleLR(x)) end, flippedOut)
@@ -69,7 +108,7 @@ function step(tag)
             saved.preds:sub(tmpIdx, tmpIdx+bs-1):copy(postprocess(set,indices,output))
         end
 
-        -- Calculate accuracy
+        -- Calculate accuracy ???
         avgAcc = avgAcc + accuracy(output, label) / nIters
     end
 

@@ -1,7 +1,7 @@
 -- Task-specific variables and functions for the 'pose' task
 
 -- Update dimension references to account for intermediate supervision
--- Usually, we apply the loss at 5 points.
+-- Usually, we apply the loss at 5 points. ???
 ref.predDim = {dataset.nJoints, 5}
 
 -- Dimensionality of the output layer
@@ -16,13 +16,26 @@ for i = 1,opt.nStack do
     criterion:add(nn[opt.crit .. 'Criterion']())
 end
 
+
 -- Function for data augmentation, randomly samples on a normal distribution
-local function rnd(x) return math.max(-2*x,math.min(2*x,torch.randn(1)[1]*x)) end
+local function rnd(x) return math.max(-2*x, math.min(2*x, torch.randn(1)[1]*x)) end
+
 
 -- Code to generate training samples from raw images
+-- Inputs
+-- set: train/val/test
+-- idx: index of the sample in the dataset
+-- Outputs
+-- img: image
+-- out: ground-truth heatmap
 function generateSample(set, idx)
+
+    -- Load the image corresponding to the sample whose index is specified
     local img = dataset:loadImage(idx)
+    -- Get the keypoints, center, and scale of the sample
     local pts, c, s = dataset:getPartInfo(idx)
+
+    -- Variable to store the amount of rotation to be applied
     local r = 0
 
     if set == 'train' then
@@ -32,8 +45,11 @@ function generateSample(set, idx)
         if torch.uniform() <= .6 then r = 0 end
     end
 
+    -- Crop the input image
     local inp = crop(img, c, s, r, opt.inputRes)
+    -- Initialize the output image (label) to a blank one
     local out = torch.zeros(dataset.nJoints, opt.outputRes, opt.outputRes)
+    -- Draw a Gaussian over the ground-truth kp coordinates
     for i = 1,dataset.nJoints do
         if pts[i][1] > 1 then -- Checks that there is a ground truth annotation
             drawGaussian(out[i], transform(pts[i], c, s, r, opt.outputRes), opt.hmGauss)
@@ -51,20 +67,33 @@ function generateSample(set, idx)
         inp[3]:mul(torch.uniform(0.6,1.4)):clamp(0,1)
     end
 
-    return inp,out
+    return inp, out
 end
 
--- Load in a mini-batch of data
-function loadData(set, idxs)
-    if type(idxs) == 'table' then idxs = torch.Tensor(idxs) end
-    local nsamples = idxs:size(1)
-    local input,label
 
+-- Load in a mini-batch of data
+-- set: train/val/test
+-- idxs: indices from which samples are to be drawn
+function loadData(set, idxs)
+
+    -- If indices are stored in a table, convert them to a torch Tensor
+    if type(idxs) == 'table' then idxs = torch.Tensor(idxs) end
+    -- Number of samples to be drawn
+    local nsamples = idxs:size(1)
+
+    -- Variables to store the images and labels (for the entire batch)
+    local input, label
+
+    -- For each sample
     for i = 1,nsamples do
-        local tmpInput,tmpLabel
-        tmpInput,tmpLabel = generateSample(set, idxs[i])
+        -- Variables to store an image and its label
+        local tmpInput, tmpLabel
+        -- Generate a sample (perform color space augmentation, random flips, random crops)
+        tmpInput, tmpLabel = generateSample(set, idxs[i])
+        -- Convert the tensor to a table
         tmpInput = tmpInput:view(1,unpack(tmpInput:size():totable()))
         tmpLabel = tmpLabel:view(1,unpack(tmpLabel:size():totable()))
+        -- Concatenate them to 'input' and 'label' respectively
         if not input then
             input = tmpInput
             label = tmpLabel
@@ -74,6 +103,7 @@ function loadData(set, idxs)
         end
     end
 
+    -- For each hourglass that is stacked, restack the label
     if opt.nStack > 1 then
         -- Set up label for intermediate supervision
         local newLabel = {}
@@ -84,6 +114,8 @@ function loadData(set, idxs)
     end
 end
 
+
+-- ???
 function postprocess(set, idx, output)
     local tmpOutput
     if type(output) == 'table' then tmpOutput = output[#output]
@@ -115,6 +147,8 @@ function postprocess(set, idx, output)
     return p_tf:cat(p,3):cat(scores,3)
 end
 
+
+-- Compute accuracy
 function accuracy(output,label)
     if type(output) == 'table' then
         return heatmapAccuracy(output[#output],label[#output],nil,dataset.accIdxs)

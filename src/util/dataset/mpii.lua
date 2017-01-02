@@ -11,7 +11,7 @@ function Dataset:__init()
 
     -- Number of joints in the dataset
     self.nJoints = 16
-    -- ??? Indices of keypoints we're interested in
+    -- Indices of keypoints whose accuracies we're interested in
     self.accIdxs = {1,2,3,4,5,6,11,12,15,16}
     -- ???
     self.flipRef = {{1,6},   {2,5},   {3,4},
@@ -81,7 +81,8 @@ end
 
 -- Get path to the sample with a particular index
 function Dataset:getPath(idx)
-    return paths.concat(opt.dataDir,'images',ffi.string(self.annot.imgname[idx]:char():data()))
+    return paths.concat('/home/data/datasets/mpii', 'images', ffi.string(self.annot.imgname[idx]:char():data()))
+    -- return paths.concat(opt.dataDir,'images',ffi.string(self.annot.imgname[idx]:char():data()))
 end
 
 
