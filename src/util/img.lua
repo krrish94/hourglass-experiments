@@ -214,11 +214,18 @@ end
 -- Draw gaussian
 -------------------------------------------------------------------------------
 
+-- Draw an isotropic 2D Gaussian on the image, with mean at 'pt' and variance 'sigma'
+-- Inputs:
+-- img: image tensor
+-- pt: location of the center (mean) of the Gaussian
+-- sigma: (isotropic) variance
 function drawGaussian(img, pt, sigma)
-    -- Draw a 2D gaussian
+
     -- Check that any part of the gaussian is in-bounds
     local tmpSize = math.ceil(3*sigma)
+    -- Upper-left corner of the Gaussian
     local ul = {math.floor(pt[1] - tmpSize), math.floor(pt[2] - tmpSize)}
+    -- Lower-right corner of the Gaussian
     local br = {math.floor(pt[1] + tmpSize), math.floor(pt[2] + tmpSize)}
     -- If not, return the image as is
     if (ul[1] > img:size(2) or ul[2] > img:size(1) or br[1] < 1 or br[2] < 1) then return img end
