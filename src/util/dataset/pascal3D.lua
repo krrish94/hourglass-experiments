@@ -55,8 +55,8 @@ function Dataset:__init()
     
     -- visible : visible keypoints ,used in eval.lua ???
     -- istrain : whether a train image or test image. 1 if true
-    -- datapath = paths.concat(projectDir, 'data/pascal3D/pascalData_64.txt')
-    datapath = paths.concat(projectDir, 'data/pascal3D/toyData.txt')
+    datapath = paths.concat(projectDir, 'data/pascal3D/pascalData_64.txt')
+    -- datapath = paths.concat(projectDir, 'data/pascal3D/singleSample_64.txt')
 
     --[[
     for line in io.open(datapath) do

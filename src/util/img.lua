@@ -227,9 +227,10 @@ function drawGaussian(img, pt, sigma)
     local ul = {math.floor(pt[1] - tmpSize), math.floor(pt[2] - tmpSize)}
     -- Lower-right corner of the Gaussian
     local br = {math.floor(pt[1] + tmpSize), math.floor(pt[2] + tmpSize)}
-    -- If not, return the image as is
+    -- If any of these corners is out-of-bounds of the image, return the image as is
     if (ul[1] > img:size(2) or ul[2] > img:size(1) or br[1] < 1 or br[2] < 1) then return img end
-    -- Generate gaussian
+    
+    -- Generate gaussian with width 3*sigma (specified in tmpSize)
     local size = 2*tmpSize + 1
     local g = image.gaussian(size)
     -- Usable gaussian range

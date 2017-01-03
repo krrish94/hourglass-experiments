@@ -1,0 +1,4 @@
+# Stack of 8 hourglasses (pascal3D)
+(check if a double hyphen is need (eg. --expID))
+
+th main.lua -expID pascal3D-stack-of-8 -dataset pascal3D -task pascalKps -nEpochs 150 -trainIters 300 -trainBatch 6 -validIters 10 -validBatch 10 -nValidImgs 100 -nStack 8
