@@ -1,3 +1,8 @@
+# 1 hourglass (pascal3D) (toy sample)
+
+th main.lua -expID pascal3D-toy -dataset pascal3D -task pascalKps -nEpochs 1 -trainIters 1 -trainBatch 1 -validIters 1 -validBatch 1 -nValidImgs 1 -nStack 1
+
+
 # Stack of 8 hourglasses (pascal3D)
 (check if a double hyphen is need (eg. --expID))
 

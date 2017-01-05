@@ -114,8 +114,8 @@ function Dataset:__init()
             -- temp[rw][1]=tonumber(str[j])
             -- temp[rw][2]=tonumber(str[j+1])
             -- IMP: Flipping X and Y coordinates, since the traindata file contains Y,X pairs
-            temp[rw][1] = tonumber(str[j+1])
-            temp[rw][2] = tonumber(str[j])
+            temp[rw][1] = tonumber(str[j])
+            temp[rw][2] = tonumber(str[j+1])
             rw=rw+1;
         end
         parttensor[i]=temp
@@ -188,7 +188,7 @@ end
 
 -- Get path to the sample with a particular index
 function Dataset:getPath(idx)
-    return paths.concat('/home/data/datasets/PASCAL3D/data_HourGlass', tostring(self.annot.imgname[idx]) .. '.jpg')
+    return paths.concat('/home/data/datasets/PASCAL3D/data_HourGlass_Original', tostring(self.annot.imgname[idx]) .. '.jpg')
     -- return paths.concat(opt.dataDir,'images',ffi.string(self.annot.imgname[idx]:char():data()))
 end
 

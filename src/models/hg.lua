@@ -1,5 +1,7 @@
 -- Defines the architecture for the hourglass model
 
+require 'cutorch'
+require 'cunn'
 
 -- Load the Residual block module
 paths.dofile('layers/Residual.lua')
@@ -93,6 +95,23 @@ function createModel()
 
     -- Final model
     local model = nn.gModule({inp}, out)
+
+    -- -- Data Parallelizing the model across multiple GPUs (buggy code ???)
+    -- if opt.nGPU > 1 then
+        
+    --     local gpus = torch.range(1, opt.nGPU):totable()
+    --     local fastest, benchmark = cudnn.fastest, cudnn.benchmark
+
+    --     local dpt = nn.DataParallelTable(1, true, true)
+    --                 :add(model, gpus)
+    --                 :threads(function()
+    --                     local cudnn = require 'cudnn'
+    --                     cudnn.fastest, cudnn.benchmark = fastest, benchmark
+    --                 end)
+    --     dpt.gradInput = nil
+    --     -- model = dpt:cuda()
+
+    -- end
 
     return model
 

@@ -37,14 +37,14 @@ for i = 1,opt.nEpochs do
     collectgarbage()
 end
 
--- Update reference for last epoch
-opt.lastEpoch = epoch - 1
+-- -- Update reference for last epoch
+-- opt.lastEpoch = epoch - 1
 
--- Save model
-model:clearState()
-torch.save(paths.concat(opt.save,'options.t7'), opt)
-torch.save(paths.concat(opt.save,'optimState.t7'), optimState)
-torch.save(paths.concat(opt.save,'final_model.t7'), model)
+-- -- Save model
+-- model:clearState()
+-- torch.save(paths.concat(opt.save,'options.t7'), opt)
+-- torch.save(paths.concat(opt.save,'optimState.t7'), optimState)
+-- torch.save(paths.concat(opt.save,'final_model.t7'), model)
 
 -- -- Generate final predictions on validation set
 -- if opt.finalPredictions then
